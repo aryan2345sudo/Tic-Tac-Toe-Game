@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tic Tac Toe — PvP & AI Mode</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: "Poppins", sans-serif;
+    background: #0d1117;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 2rem;
+  }
+
+  h1 {
+    color: #4f9ef7;
+  }
+
+  .mode-select {
+    margin: 1rem 0;
+  }
+
+  select {
+    padding: 0.5rem;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 120px);
+    gap: 10px;
+    margin-top: 1.5rem;
+  }
+
+  .cell {
+    width: 120px;
+    height: 120px;
+    background: #161b22;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.25s;
+  }
+
+  .cell:hover {
+    background: #1f242d;
+  }
+
+  #status {
+    margin-top: 1.5rem;
+    font-size: 1.2rem;
+    color: #c9d1d9;
+  }
+
+  #reset {
+    margin-top: 1.5rem;
+    padding: 0.7rem 1.2rem;
+    font-size: 1rem;
+    border-radius: 10px;
+    background: #4f9ef7;
+    color: #000;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.25s;
+  }
+
+  #reset:hover {
+    background: #6bb3ff;
+  }
+</style>
+</head>
+<body>
+
+<h1>Tic Tac Toe</h1>
+
+<div class="mode-select">
+  <label>Choose Mode: </label>
+  <select id="mode">
+    <option value="pvp">Player vs Player</option>
+    <option value="ai">Player vs AI</option>
+  </select>
+</div>
+
+<div class="board" id="board"></div>
+
+<div id="status">Player X's Turn</div>
+<button id="reset">Reset Game</button>
+
+<script>
+  const boardElement = document.getElementById("board");
+  const statusText = document.getElementById("status");
+  const resetBtn = document.getElementById("reset");
+  const modeSelect = document.getElementById("mode");
+
+  let board = Array(9).fill("");
+  let currentPlayer = "X";
+  let gameActive = true;
+
+  const winningConditions = [
+    [0,1,2], [3,4,5], [6,7,8],
+    [0,3,6], [1,4,7], [2,5,8],
+    [0,4,8], [2,4,6]
+  ];
+
+  function initBoard() {
+    boardElement.innerHTML = "";
+    board = Array(9).fill("");
+    board.forEach((_, i) => {
+      const cell = document.createElement("div");
+      cell.classList.add("cell");
+      cell.dataset.index = i;
+      cell.addEventListener("click", handleCellClick);
+      boardElement.appendChild(cell);
+    });
+    currentPlayer = "X";
+    gameActive = true;
+    statusText.textContent = "Player X's Turn";
+  }
+
+  function handleCellClick(e) {
+    const index = e.target.dataset.index;
+    if (board[index] !== "" || !gameActive) return;
+
+    playMove(index, currentPlayer);
+
+    if (modeSelect.value === "ai" && gameActive && currentPlayer === "O") {
+      setTimeout(aiMove, 500);
+    }
+  }
+
+  function playMove(index, player) {
+    board[index] = player;
+    const cell = document.querySelector(`[data-index='${index}']`);
+    cell.textContent = player;
+
+    if (checkWin(player)) {
+      statusText.textContent = `Player ${player} Wins!`;
+      gameActive = false;
+      return;
+    }
+
+    if (!board.includes("")) {
+      statusText.textContent = "It's a Draw!";
+      gameActive = false;
+      return;
+    }
+
+    currentPlayer = currentPlayer === "X" ? "O" : "X";
+    statusText.textContent = `Player ${currentPlayer}'s Turn`;
+  }
+
+  function checkWin(player) {
+    return winningConditions.some(comb => comb.every(index => board[index] === player));
+  }
+
+  function aiMove() {
+    // Simple AI: pick any empty cell
+    const emptyCells = board
+      .map((val, idx) => (val === "" ? idx : null))
+      .filter(v => v !== null);
+
+    const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+    playMove(randomIndex, "O");
+  }
+
+  resetBtn.addEventListener("click", initBoard);
+  modeSelect.addEventListener("change", initBoard);
+
+  initBoard();
+</script>
+
+</body>
+</html>
